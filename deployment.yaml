@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: animal-app-deployment
+spec:
+  replicas: 1  # Single pod with Flask and MongoDB
+  selector:
+    matchLabels:
+      app: animal-app
+  template:
+    metadata:
+      labels:
+        app: animal-app
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:latest
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: animal_db
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: root
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: pass
+          volumeMounts:
+            - name: mongo-storage
+              mountPath: /data/db
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+        - name: animal-app
+          image: sartaj1212/todopy  # Replace with your actual Flask app image
+          ports:
+            - containerPort: 5000
+          env:
+            - name: MONGO_URI
+              value: "mongodb://root:pass@localhost:27017/animal_db?authSource=admin"
+ 
+      volumes:
+
+        - name: mongo-storage
+          emptyDir: {}
+ #         persistentVolumeClaim:
+  #          claimName: mongo-pvc
+
